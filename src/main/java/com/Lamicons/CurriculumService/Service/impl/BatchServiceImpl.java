@@ -48,7 +48,7 @@ public class BatchServiceImpl implements BatchService {
         
         Course course = courseRepository.findById(requestDto.getCourseId())
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found with ID: " + requestDto.getCourseId()));
-        
+
 
         University university = universityRepository.findById(requestDto.getUniversityId())
                     .orElseThrow(() -> new ResourceNotFoundException("University not found with ID: " + requestDto.getUniversityId()));

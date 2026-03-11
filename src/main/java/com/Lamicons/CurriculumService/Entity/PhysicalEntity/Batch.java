@@ -45,7 +45,6 @@ public class Batch {
     @Column(name = "instructor_user_id")
     private UUID instructorUserId;
 
-
     @CreationTimestamp
     private LocalDateTime createdAt;
 
@@ -55,4 +54,3 @@ public class Batch {
     private UUID createdBy;
     private UUID updatedBy;
 }
-
