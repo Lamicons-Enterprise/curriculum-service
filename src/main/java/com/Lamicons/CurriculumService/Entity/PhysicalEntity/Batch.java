@@ -42,6 +42,9 @@ public class Batch {
     @JoinColumn(name = "university_id")
     private University university;
 
+    @Column(name = "instructor_user_id")
+    private UUID instructorUserId;
+
 
     @CreationTimestamp
     private LocalDateTime createdAt;

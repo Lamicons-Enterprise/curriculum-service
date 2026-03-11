@@ -21,4 +21,6 @@ public interface BatchService {
     BatchResponseDto updateBatch(UUID id, BatchRequestDto requestDto, UUID userId);
 
     void deleteBatch(UUID id);
+
+    boolean isInstructorAssignedToBatch(UUID batchId, UUID instructorUserId);
 }

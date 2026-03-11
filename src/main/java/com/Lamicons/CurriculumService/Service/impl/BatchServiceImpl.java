@@ -1,5 +1,7 @@
 package com.Lamicons.CurriculumService.Service.impl;
 
+import com.Lamicons.CurriculumService.DTO.Batch.BatchAssignmentEvent;
+import com.Lamicons.CurriculumService.DTO.Batch.BatchAssignmentEventType;
 import com.Lamicons.CurriculumService.DTO.Batch.BatchRequestDto;
 import com.Lamicons.CurriculumService.DTO.Batch.BatchResponseDto;
 import com.Lamicons.CurriculumService.Entity.Course;
@@ -9,6 +11,7 @@ import com.Lamicons.CurriculumService.Exception.ResourceNotFoundException;
 import com.Lamicons.CurriculumService.Repository.BatchRepository;
 import com.Lamicons.CurriculumService.Repository.CourseRepository;
 import com.Lamicons.CurriculumService.Repository.UniversityRepository;
+import com.Lamicons.CurriculumService.Service.BatchEventPublisher;
 import com.Lamicons.CurriculumService.Service.BatchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -27,6 +31,7 @@ public class BatchServiceImpl implements BatchService {
     private final BatchRepository batchRepository;
     private final CourseRepository courseRepository;
     private final UniversityRepository universityRepository;
+    private final BatchEventPublisher batchEventPublisher;
     
     @Override
     @Transactional
@@ -58,12 +63,23 @@ public class BatchServiceImpl implements BatchService {
         batch.setActive(true);
         batch.setCourse(course);
         batch.setUniversity(university);
+        batch.setInstructorUserId(requestDto.getInstructorUserId());
         batch.setCreatedBy(userId);
         batch.setUpdatedBy(userId);
         
         Batch savedBatch = batchRepository.save(batch);
         log.info("BatchServiceImpl : createBatch : Batch created successfully with ID: {}", savedBatch.getId());
-        
+
+        // Publish ASSIGNED event if instructor is set
+        if (savedBatch.getInstructorUserId() != null) {
+            batchEventPublisher.publishBatchAssignmentEvent(
+                    BatchAssignmentEvent.builder()
+                            .batchId(savedBatch.getId())
+                            .instructorUserId(savedBatch.getInstructorUserId())
+                            .eventType(BatchAssignmentEventType.ASSIGNED)
+                            .build());
+        }
+
         return mapToResponseDto(savedBatch);
     }
     
@@ -138,7 +154,9 @@ public class BatchServiceImpl implements BatchService {
         
         Batch batch = batchRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Batch not found with ID: " + id));
-        
+
+        // Capture old instructorUserId before mutation
+        UUID oldInstructorUserId = batch.getInstructorUserId();
 
         if (!batch.getBatchCode().equals(requestDto.getBatchCode()) &&
             batchRepository.existsByBatchCode(requestDto.getBatchCode())) {
@@ -161,13 +179,38 @@ public class BatchServiceImpl implements BatchService {
             batch.setEndDate(requestDto.getEndDate());
         if(requestDto.getCapacity()!=null)
             batch.setCapacity(requestDto.getCapacity());
+        // instructorUserId: null is valid — means "remove instructor assignment"
+        batch.setInstructorUserId(requestDto.getInstructorUserId());
         batch.setCourse(course);
         batch.setUniversity(university);
         batch.setUpdatedBy(userId);
         
         Batch updatedBatch = batchRepository.save(batch);
         log.info("BatchServiceImpl : updateBatch : Batch updated successfully");
-        
+
+        // Publish events if instructorUserId changed
+        UUID newInstructorUserId = updatedBatch.getInstructorUserId();
+        if (!Objects.equals(oldInstructorUserId, newInstructorUserId)) {
+            // UNASSIGNED for the old instructor (if any)
+            if (oldInstructorUserId != null) {
+                batchEventPublisher.publishBatchAssignmentEvent(
+                        BatchAssignmentEvent.builder()
+                                .batchId(updatedBatch.getId())
+                                .instructorUserId(oldInstructorUserId)
+                                .eventType(BatchAssignmentEventType.UNASSIGNED)
+                                .build());
+            }
+            // ASSIGNED for the new instructor (if any)
+            if (newInstructorUserId != null) {
+                batchEventPublisher.publishBatchAssignmentEvent(
+                        BatchAssignmentEvent.builder()
+                                .batchId(updatedBatch.getId())
+                                .instructorUserId(newInstructorUserId)
+                                .eventType(BatchAssignmentEventType.ASSIGNED)
+                                .build());
+            }
+        }
+
         return mapToResponseDto(updatedBatch);
     }
     
@@ -178,9 +221,28 @@ public class BatchServiceImpl implements BatchService {
         
         Batch batch = batchRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Batch not found with ID: " + id));
-        
+
+        // Publish BATCH_DELETED event before deleting
+        if (batch.getInstructorUserId() != null) {
+            batchEventPublisher.publishBatchAssignmentEvent(
+                    BatchAssignmentEvent.builder()
+                            .batchId(batch.getId())
+                            .instructorUserId(batch.getInstructorUserId())
+                            .eventType(BatchAssignmentEventType.BATCH_DELETED)
+                            .build());
+        }
+
         batchRepository.delete(batch);
         log.info("BatchServiceImpl : deleteBatch : Batch deleted successfully");
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isInstructorAssignedToBatch(UUID batchId, UUID instructorUserId) {
+        log.info("BatchServiceImpl : isInstructorAssignedToBatch : batchId: {}, instructorUserId: {}", batchId, instructorUserId);
+        return batchRepository.findById(batchId)
+                .map(batch -> instructorUserId.equals(batch.getInstructorUserId()))
+                .orElse(false);
     }
 
     private BatchResponseDto mapToResponseDto(Batch batch) {
@@ -196,6 +258,7 @@ public class BatchServiceImpl implements BatchService {
                 .courseName(batch.getCourse() != null ? batch.getCourse().getName() : null)
                 .universityId(batch.getUniversity() != null ? batch.getUniversity().getId() : null)
                 .universityName(batch.getUniversity() != null ? batch.getUniversity().getName() : null)
+                .instructorUserId(batch.getInstructorUserId())
                 .createdAt(batch.getCreatedAt())
                 .updatedAt(batch.getUpdatedAt())
                 .createdBy(batch.getCreatedBy())

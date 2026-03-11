@@ -42,4 +42,7 @@ public class BatchRequestDto {
     private UUID courseId;
     @NotNull(message = "University ID is required")
     private UUID universityId;
+    
+    @NotNull(message = "Instructor user ID is required")
+    private UUID instructorUserId;
 }

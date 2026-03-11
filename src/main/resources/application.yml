@@ -4,8 +4,8 @@ spring:
 
   datasource:
     url: jdbc:postgresql://localhost:5432/lamicons
-    username: postgres
-    password: postgres
+    username: db_username
+    password: db_password
     driver-class-name: org.postgresql.Driver
 
   sql:
@@ -26,9 +26,23 @@ spring:
           lob:
             non_contextual_creation: true
 
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+    virtual-host: ${RABBITMQ_VHOST:/}
+
   cloud:
     compatibility-verifier:
       enabled: false
+
+# RabbitMQ custom properties
+rabbitmq:
+  exchange:
+    name: lamicons.notification.exchange
+  routing-key:
+    batch-assignment: curriculum.batch.assignment
 
 server:
   port: 8082
