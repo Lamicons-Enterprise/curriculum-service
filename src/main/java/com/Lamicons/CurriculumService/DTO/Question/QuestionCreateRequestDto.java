@@ -44,10 +44,10 @@ public class QuestionCreateRequestDto {
     private String correctAnswer;
     
     // For Coding questions
-    private String sampleInput;
-    private String sampleOutput;
-    private String constraints;
-    private String starterCode;
+    private Integer timeLimit;
+    private Integer memoryLimit;
+    private List<CodingTestCaseDto> testCases;
+    private List<LanguageConfigDto> languageConfigs;
     
     // Optional: Assessment to link this question to
     private UUID assessmentId;
