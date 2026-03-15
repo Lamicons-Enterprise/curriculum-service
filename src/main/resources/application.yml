@@ -1,5 +1,77 @@
 spring:
-  application:
-    name: Curriculum-Service
-  config:
-    import: optional:configserver:http://localhost:8888
+  datasource:
+    url: jdbc:postgresql://localhost:5432/lamicons
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  sql:
+    init:
+      mode: always
+      continue-on-error: true
+      platform: postgresql
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          lob:
+            non_contextual_creation: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+
+server:
+  port: 8082
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+
+# SpringDoc OpenAPI Configuration
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    disable-swagger-default-url: true
+    display-request-duration: true
+  pathsToMatch: /api/**
+
+# AWS S3 Configuration
+aws:
+  s3:
+    access-key: ${AWS_ACCESS_KEY:jbveubuebebuefbvouefv}
+    secret-key: ${AWS_SECRET_KEY:jhbbibhhbihbveipf}
+    region: ${AWS_REGION:us-east-1}
+    bucket-name: ${AWS_S3_BUCKET_NAME:lamicons}
+    prefix: ${AWS_S3_PREFIX:curriculum-service/}
+    enabled: true 
+
+# File Upload Configuration
+file:
+  upload:
+    max-size: 10MB
+    allowed-image-types: image/jpeg,image/png
+    allowed-video-types: video/mp4,video/mpeg,video/webm
+    allowed-document-types: application/pdf
+
+# Eureka (optional — won't crash if Eureka not running)
+eureka:
+  client:
+    enabled: true
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+
