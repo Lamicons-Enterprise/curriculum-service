@@ -114,6 +114,13 @@
             <version>1.38.0</version>
         </dependency>
 
+        <!-- Cloudinary -->
+        <dependency>
+            <groupId>com.cloudinary</groupId>
+            <artifactId>cloudinary-http45</artifactId>
+            <version>1.38.0</version>
+        </dependency>
+
         <!-- Support for multipart file uploads -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -132,12 +139,7 @@
 <!--			<artifactId>spring-cloud-starter-config</artifactId>-->
 <!--		</dependency>-->
 
-	        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.5.14</version>
-        </dependency>
-</dependencies>
+	</dependencies>
 
 	<dependencyManagement>
 		<dependencies>
@@ -148,12 +150,7 @@
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
-		        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.5.14</version>
-        </dependency>
-</dependencies>
+		</dependencies>
 	</dependencyManagement>
 
 	<build>
@@ -186,4 +183,3 @@
 	</build>
 
 </project>
-

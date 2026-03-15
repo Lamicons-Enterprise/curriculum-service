@@ -1,5 +1,6 @@
 package com.Lamicons.CurriculumService.Controller;
 
+import com.Lamicons.CurriculumService.DTO.File.FileUploadDirectRequestDto;
 import com.Lamicons.CurriculumService.DTO.File.FileUploadResponseDto;
 import com.Lamicons.CurriculumService.DTO.University.ApiResponse;
 import com.Lamicons.CurriculumService.Exception.UnauthorizedException;
@@ -35,6 +36,32 @@ public class CourseFileController {
             log.warn("CourseFileController: Unauthorized access attempt with role: {}", userRole);
             throw new UnauthorizedException("Access denied. Admin role required.");
         }
+    }
+
+    @Operation(summary = "Confirm course banner upload (Direct Storage) [ADMIN]", description = "Confirms a client-side direct upload to storage and updates the course record")
+    @PostMapping(value = "/{courseId}/banner/confirm")
+    public ResponseEntity<ApiResponse<FileUploadResponseDto>> confirmBannerUpload(
+            @Parameter(description = "User ID from header", required = true)
+            @RequestHeader("X-USER-ID") String userId,
+            @Parameter(description = "User role from header", required = true)
+            @RequestHeader("X-USER-ROLE") String userRole,
+            @Parameter(description = "ID of the course to update", required = true)
+            @PathVariable UUID courseId,
+            @RequestBody FileUploadDirectRequestDto requestDto) {
+        
+        log.info("CourseFileController : confirmBannerUpload : Confirming banner for course ID: {}", courseId);
+        validateAdminRole(userRole);
+        
+        courseService.updateCourseFileUrl(courseId, "banner", requestDto.getFileUrl());
+        log.info("CourseFileController : confirmBannerUpload : Banner updated successfully for course ID: {}", courseId);
+        
+        FileUploadResponseDto response = FileUploadResponseDto.builder()
+                .fileUrl(requestDto.getFileUrl())
+                .message("Banner link confirmed and saved successfully")
+                .success(true)
+                .build();
+                
+        return ResponseEntity.ok(ApiResponse.success("Banner updated successfully", response));
     }
 
     @Operation(summary = "Upload course banner image [ADMIN]", description = "Uploads a banner image for a course and updates the course record")
@@ -74,6 +101,32 @@ public class CourseFileController {
         return ResponseEntity.ok(apiResponse);
     }
 
+    @Operation(summary = "Confirm course thumbnail upload (Direct Storage) [ADMIN]", description = "Confirms a client-side direct upload to storage and updates the course record")
+    @PostMapping(value = "/{courseId}/thumbnail/confirm")
+    public ResponseEntity<ApiResponse<FileUploadResponseDto>> confirmThumbnailUpload(
+            @Parameter(description = "User ID from header", required = true)
+            @RequestHeader("X-USER-ID") String userId,
+            @Parameter(description = "User role from header", required = true)
+            @RequestHeader("X-USER-ROLE") String userRole,
+            @Parameter(description = "ID of the course to update", required = true)
+            @PathVariable UUID courseId,
+            @RequestBody FileUploadDirectRequestDto requestDto) {
+        
+        log.info("CourseFileController : confirmThumbnailUpload : Confirming thumbnail for course ID: {}", courseId);
+        validateAdminRole(userRole);
+        
+        courseService.updateCourseFileUrl(courseId, "thumbnail", requestDto.getFileUrl());
+        log.info("CourseFileController : confirmThumbnailUpload : Thumbnail updated successfully for course ID: {}", courseId);
+        
+        FileUploadResponseDto response = FileUploadResponseDto.builder()
+                .fileUrl(requestDto.getFileUrl())
+                .message("Thumbnail link confirmed and saved successfully")
+                .success(true)
+                .build();
+                
+        return ResponseEntity.ok(ApiResponse.success("Thumbnail updated successfully", response));
+    }
+
     @Operation(summary = "Upload course thumbnail image [ADMIN]", description = "Uploads a thumbnail image for a course and updates the course record")
     @ApiResponses(value = {
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "File uploaded successfully",
@@ -111,6 +164,32 @@ public class CourseFileController {
         return ResponseEntity.ok(apiResponse);
     }
 
+    @Operation(summary = "Confirm course promo video upload (Direct Storage) [ADMIN]", description = "Confirms a client-side direct upload to storage and updates the course record")
+    @PostMapping(value = "/{courseId}/promovideo/confirm")
+    public ResponseEntity<ApiResponse<FileUploadResponseDto>> confirmPromoVideoUpload(
+            @Parameter(description = "User ID from header", required = true)
+            @RequestHeader("X-USER-ID") String userId,
+            @Parameter(description = "User role from header", required = true)
+            @RequestHeader("X-USER-ROLE") String userRole,
+            @Parameter(description = "ID of the course to update", required = true)
+            @PathVariable UUID courseId,
+            @RequestBody FileUploadDirectRequestDto requestDto) {
+        
+        log.info("CourseFileController : confirmPromoVideoUpload : Confirming promo video for course ID: {}", courseId);
+        validateAdminRole(userRole);
+        
+        courseService.updateCourseFileUrl(courseId, "promoVideo", requestDto.getFileUrl());
+        log.info("CourseFileController : confirmPromoVideoUpload : Promo video updated successfully for course ID: {}", courseId);
+        
+        FileUploadResponseDto response = FileUploadResponseDto.builder()
+                .fileUrl(requestDto.getFileUrl())
+                .message("Promo video link confirmed and saved successfully")
+                .success(true)
+                .build();
+                
+        return ResponseEntity.ok(ApiResponse.success("Promo video updated successfully", response));
+    }
+
     @Operation(summary = "Upload course promo video [ADMIN]", description = "Uploads a promotional video for a course and updates the course record")
     @ApiResponses(value = {
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "File uploaded successfully",
@@ -146,6 +225,32 @@ public class CourseFileController {
         
         ApiResponse<FileUploadResponseDto> apiResponse = ApiResponse.success("Promo video uploaded successfully", response);
         return ResponseEntity.ok(apiResponse);
+    }
+
+    @Operation(summary = "Confirm course certificate upload (Direct Storage) [ADMIN]", description = "Confirms a client-side direct upload to storage and updates the course record")
+    @PostMapping(value = "/{courseId}/certificate/confirm")
+    public ResponseEntity<ApiResponse<FileUploadResponseDto>> confirmCertificateUpload(
+            @Parameter(description = "User ID from header", required = true)
+            @RequestHeader("X-USER-ID") String userId,
+            @Parameter(description = "User role from header", required = true)
+            @RequestHeader("X-USER-ROLE") String userRole,
+            @Parameter(description = "ID of the course to update", required = true)
+            @PathVariable UUID courseId,
+            @RequestBody FileUploadDirectRequestDto requestDto) {
+        
+        log.info("CourseFileController : confirmCertificateUpload : Confirming certificate for course ID: {}", courseId);
+        validateAdminRole(userRole);
+        
+        courseService.updateCourseFileUrl(courseId, "certificate", requestDto.getFileUrl());
+        log.info("CourseFileController : confirmCertificateUpload : Certificate updated successfully for course ID: {}", courseId);
+        
+        FileUploadResponseDto response = FileUploadResponseDto.builder()
+                .fileUrl(requestDto.getFileUrl())
+                .message("Certificate link confirmed and saved successfully")
+                .success(true)
+                .build();
+                
+        return ResponseEntity.ok(ApiResponse.success("Certificate updated successfully", response));
     }
 
     @Operation(summary = "Upload course certificate [ADMIN]", description = "Uploads a certificate template for a course and updates the course record")
