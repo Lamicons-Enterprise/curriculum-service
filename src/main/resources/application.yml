@@ -1,8 +1,11 @@
 spring:
+  application:
+    name: CURRICULUM-SERVICE
+
   datasource:
     url: jdbc:postgresql://localhost:5432/lamicons
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:Atul2192}
     driver-class-name: org.postgresql.Driver
 
   sql:

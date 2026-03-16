@@ -20,7 +20,7 @@ import java.util.UUID;
 
 
 @RestController
-@RequestMapping("/api/modules")
+@RequestMapping("/api/v1/modules")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Module Management", description = "Module CRUD operations and course-module relationships")

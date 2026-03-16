@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/assessments")
+@RequestMapping("/api/v1/assessments")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Assessment Management", description = "Unified Assessment API - CRUD operations and module linking")

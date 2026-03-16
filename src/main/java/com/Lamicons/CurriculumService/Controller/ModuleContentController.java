@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/module-content")
+@RequestMapping("/api/v1/modules/module-content")
 @Tag(name = "Module Content Management", description = "APIs for managing module content items")
 @Slf4j
 @RequiredArgsConstructor

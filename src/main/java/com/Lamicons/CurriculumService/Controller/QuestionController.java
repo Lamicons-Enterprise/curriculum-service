@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/questions")
+@RequestMapping("/api/v1/questions")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Question Management", description = "Unified Question API - CRUD operations, assessment linking, and bulk CSV upload")
