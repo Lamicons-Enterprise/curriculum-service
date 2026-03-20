@@ -98,9 +98,9 @@ public class BatchServiceImpl implements BatchService {
         log.info("BatchServiceImpl : getBatchesByCourseId : Fetching batches for course ID: {}", courseId);
 
         List<Batch> batches = batchRepository.findByCourseId(courseId);
-        if(batches.isEmpty()) {
+        if (batches.isEmpty()) {
             log.info("BatchServiceImpl : getBatchesByCourseId : No batches found for course ID: {}", courseId);
-            throw new ResourceNotFoundException("No batches found for course ID: " + courseId);
+            return List.of();
         }
         log.info("BatchServiceImpl : getBatchesByCourseId : Found {} batches", batches.size());
         
@@ -115,9 +115,9 @@ public class BatchServiceImpl implements BatchService {
         log.info("BatchServiceImpl : getBatchesByUniversityId : Fetching batches for university ID: {}", universityId);
         
         List<Batch> batches = batchRepository.findByUniversityId(universityId);
-        if(batches.isEmpty()) {
+        if (batches.isEmpty()) {
             log.info("BatchServiceImpl : getBatchesByUniversityId : No batches found for university ID: {}", universityId);
-            throw new ResourceNotFoundException("No batches found for university ID: " + universityId);
+            return List.of();
         }
         log.info("BatchServiceImpl : getBatchesByUniversityId : Found {} batches", batches.size());
         
