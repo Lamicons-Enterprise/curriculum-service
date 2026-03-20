@@ -31,6 +31,14 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(ex, "Resource not found", HttpStatus.NOT_FOUND, request);
     }
 
+    @ExceptionHandler(ResourceNotFoundException.class)
+    @ApiResponse(responseCode = "404", description = "Resource not found",
+            content = @Content(mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class)))
+    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException ex, WebRequest request) {
+        return buildErrorResponse(ex, "Resource not found", HttpStatus.NOT_FOUND, request);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ApiResponse(responseCode = "400", description = "Invalid request parameters",
             content = @Content(mediaType = "application/json", 
