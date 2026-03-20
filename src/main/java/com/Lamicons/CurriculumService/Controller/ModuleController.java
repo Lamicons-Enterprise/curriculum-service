@@ -29,7 +29,11 @@ public class ModuleController {
     private final ModuleService moduleService;
 
     private void validateAdminRole(String userRole) {
-        if (userRole == null || !userRole.equalsIgnoreCase("ADMIN")) {
+        if (userRole == null || 
+            !(userRole.equalsIgnoreCase("ADMIN") || 
+              userRole.equalsIgnoreCase("ROLE_ADMIN") || 
+              userRole.equalsIgnoreCase("SUPER_ADMIN") || 
+              userRole.equalsIgnoreCase("ROLE_SUPER_ADMIN"))) {
             log.warn("ModuleController: Unauthorized access attempt with role: {}", userRole);
             throw new UnauthorizedException("Access denied. Admin role required.");
         }
@@ -73,9 +77,11 @@ public class ModuleController {
             @RequestHeader("X-USER-ID") String userId,
             @Parameter(description = "User role from header", required = true)
             @RequestHeader("X-USER-ROLE") String userRole,
+            @Parameter(description = "User email from header", required = true)
+            @RequestHeader("X-USER-EMAIL") String userEmail,
             @Valid @RequestBody ModuleAttachmentRequestDto.NewModuleDto request
     ) {
-        log.info("POST /api/modules - Creating module: {}", request.getTitle());
+        log.info("POST /api/modules - Creating module: {} by user: {}", request.getTitle(), userEmail);
         validateAdminRole(userRole);
         ModuleSummaryDto module = moduleService.createStandaloneModule(request);
         ApiResponse<ModuleSummaryDto> response = ApiResponse.success("Module created successfully", module);
@@ -92,10 +98,12 @@ public class ModuleController {
             @RequestHeader("X-USER-ID") String userId,
             @Parameter(description = "User role from header", required = true)
             @RequestHeader("X-USER-ROLE") String userRole,
+            @Parameter(description = "User email from header", required = true)
+            @RequestHeader("X-USER-EMAIL") String userEmail,
             @Parameter(description = "Module ID", required = true) @PathVariable UUID id,
             @Valid @RequestBody ModuleAttachmentRequestDto.NewModuleDto request
     ) {
-        log.info("PUT /api/modules/{} - Updating module", id);
+        log.info("PUT /api/modules/{} - Updating module by user: {}", id, userEmail);
         validateAdminRole(userRole);
         ModuleSummaryDto module = moduleService.updateModule(id, request);
         ApiResponse<ModuleSummaryDto> response = ApiResponse.success("Module updated successfully", module);
@@ -112,9 +120,11 @@ public class ModuleController {
             @RequestHeader("X-USER-ID") String userId,
             @Parameter(description = "User role from header", required = true)
             @RequestHeader("X-USER-ROLE") String userRole,
+            @Parameter(description = "User email from header", required = true)
+            @RequestHeader("X-USER-EMAIL") String userEmail,
             @Parameter(description = "Module ID", required = true) @PathVariable UUID id
     ) {
-        log.info("DELETE /api/modules/{}", id);
+        log.info("DELETE /api/modules/{} by user: {}", id, userEmail);
         validateAdminRole(userRole);
         moduleService.deleteModule(id);
         ApiResponse<Void> response = ApiResponse.success("Module deleted successfully", null);
@@ -160,9 +170,11 @@ public class ModuleController {
             @RequestHeader("X-USER-ID") String userId,
             @Parameter(description = "User role from header", required = true)
             @RequestHeader("X-USER-ROLE") String userRole,
+            @Parameter(description = "User email from header", required = true)
+            @RequestHeader("X-USER-EMAIL") String userEmail,
             @Valid @RequestBody ModuleAttachmentRequestDto request
     ) {
-        log.info("POST /api/modules/attach-to-course - courseId: {}", request.getCourseId());
+        log.info("POST /api/modules/attach-to-course - courseId: {} by user: {}", request.getCourseId(), userEmail);
         validateAdminRole(userRole);
         CourseResponseDto course = moduleService.attachModulesToCourse(request);
         ApiResponse<CourseResponseDto> response = ApiResponse.success("Modules attached to course successfully", course);
@@ -179,10 +191,12 @@ public class ModuleController {
             @RequestHeader("X-USER-ID") String userId,
             @Parameter(description = "User role from header", required = true)
             @RequestHeader("X-USER-ROLE") String userRole,
+            @Parameter(description = "User email from header", required = true)
+            @RequestHeader("X-USER-EMAIL") String userEmail,
             @Parameter(description = "Course ID", required = true) @PathVariable UUID courseId,
             @Parameter(description = "Module ID", required = true) @PathVariable UUID moduleId
     ) {
-        log.info("DELETE /api/modules/course/{}/modules/{}", courseId, moduleId);
+        log.info("DELETE /api/modules/course/{}/modules/{} by user: {}", courseId, moduleId, userEmail);
         validateAdminRole(userRole);
         moduleService.removeModuleFromCourse(courseId, moduleId);
         ApiResponse<Void> response = ApiResponse.success("Module removed from course successfully", null);
@@ -199,10 +213,12 @@ public class ModuleController {
             @RequestHeader("X-USER-ID") String userId,
             @Parameter(description = "User role from header", required = true)
             @RequestHeader("X-USER-ROLE") String userRole,
+            @Parameter(description = "User email from header", required = true)
+            @RequestHeader("X-USER-EMAIL") String userEmail,
             @Parameter(description = "Course ID", required = true) @PathVariable UUID courseId,
             @RequestBody List<UUID> moduleIdsInOrder
     ) {
-        log.info("PUT /api/modules/course/{}/reorder", courseId);
+        log.info("PUT /api/modules/course/{}/reorder by user: {}", courseId, userEmail);
         validateAdminRole(userRole);
         CourseResponseDto course = moduleService.reorderModules(courseId, moduleIdsInOrder);
         ApiResponse<CourseResponseDto> response = ApiResponse.success("Modules reordered successfully", course);
