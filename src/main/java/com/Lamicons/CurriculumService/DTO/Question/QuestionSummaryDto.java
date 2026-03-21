@@ -31,5 +31,8 @@ public class QuestionSummaryDto {
     private List<String> correctOption;
     
     // Coding specific fields
-    private List<String> testcases;
+    private List<CodingTestCaseDto> testCases;
+    private Integer timeLimit;
+    private Integer memoryLimit;
+    private List<LanguageConfigDto> languageConfigs;
 }

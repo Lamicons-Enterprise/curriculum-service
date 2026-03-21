@@ -32,7 +32,11 @@ public class CourseFileController {
     private final CourseService courseService;
 
     private void validateAdminRole(String userRole) {
-        if (userRole == null || !userRole.equalsIgnoreCase("ADMIN")) {
+        if (userRole == null || 
+            !(userRole.equalsIgnoreCase("ADMIN") || 
+              userRole.equalsIgnoreCase("ROLE_ADMIN") || 
+              userRole.equalsIgnoreCase("SUPER_ADMIN") || 
+              userRole.equalsIgnoreCase("ROLE_SUPER_ADMIN"))) {
             log.warn("CourseFileController: Unauthorized access attempt with role: {}", userRole);
             throw new UnauthorizedException("Access denied. Admin role required.");
         }

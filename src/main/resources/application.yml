@@ -1,10 +1,10 @@
 spring:
-  profiles:
-    active: prod
+  application:
+    name: CURRICULUM-SERVICE
   datasource:
-    url: jdbc:postgresql://localhost:5432/lamicons
-    username: postgres
-    password: 123
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/lamicons}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:Atul2192}
     driver-class-name: org.postgresql.Driver
 
   sql:
@@ -16,8 +16,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
-    open-in-view: false
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
@@ -78,13 +77,15 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
     service-url:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
 
-# Cloudinary Configuration
-cloudinary:
-  cloud-name: dcurn2sr2
-  api-key: 126865781851976
-  api-secret: OPiBXYe7pri7kQ20EBJEIpud8RI
-
-upload:
-  max-file-size: 5242880 # 5 MB threshold
+logging:
+  level:
+    root: WARN
+    org.springframework: WARN
+    org.hibernate: WARN
+    org.hibernate.SQL: OFF
+    com.netflix.discovery: WARN
+    org.springframework.cloud: WARN
+    org.springframework.data.redis: ERROR
+    com.Lamicons: INFO

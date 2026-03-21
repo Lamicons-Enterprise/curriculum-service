@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/module-content")
+@RequestMapping("/api/v1/modules/module-content")
 @Tag(name = "Module Content Management", description = "APIs for managing module content items")
 @Slf4j
 @RequiredArgsConstructor
@@ -31,7 +31,11 @@ public class ModuleContentController {
     private final ModuleContentService moduleContentService;
 
     private void validateAdminRole(String userRole) {
-        if (userRole == null || !userRole.equalsIgnoreCase("ADMIN")) {
+        if (userRole == null || 
+            !(userRole.equalsIgnoreCase("ADMIN") || 
+              userRole.equalsIgnoreCase("ROLE_ADMIN") || 
+              userRole.equalsIgnoreCase("SUPER_ADMIN") || 
+              userRole.equalsIgnoreCase("ROLE_SUPER_ADMIN"))) {
             log.warn("ModuleContentController: Unauthorized access attempt with role: {}", userRole);
             throw new UnauthorizedException("Access denied. Admin role required.");
         }
