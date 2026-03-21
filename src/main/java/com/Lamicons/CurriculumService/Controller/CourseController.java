@@ -1,5 +1,6 @@
 package com.Lamicons.CurriculumService.Controller;
 
+import com.Lamicons.CurriculumService.Annotation.RequireRole;
 import com.Lamicons.CurriculumService.DTO.Course.*;
 import com.Lamicons.CurriculumService.DTO.University.ApiResponse;
 import com.Lamicons.CurriculumService.Exception.UnauthorizedException;
@@ -26,54 +27,50 @@ public class CourseController {
     
     private final CourseService courseService;
 
-    private void validateAdminRole(String userRole) {
-        if (userRole == null || 
-            !(userRole.equalsIgnoreCase("ADMIN") || 
-              userRole.equalsIgnoreCase("ROLE_ADMIN") || 
-              userRole.equalsIgnoreCase("SUPER_ADMIN") || 
-              userRole.equalsIgnoreCase("ROLE_SUPER_ADMIN"))) {
-            log.warn("CourseController: Unauthorized access attempt with role: {}", userRole);
-            throw new UnauthorizedException("Access denied. Admin role required.");
-        }
-    }
-
     @GetMapping
-    @Operation(summary = "Get all courses", description = "Public endpoint. Lists all courses with optional status filter")
+    @RequireRole({"ADMIN", "SUPER_ADMIN", "STUDENT"})
+    @Operation(summary = "Get all courses", description = "Retrieves all courses with optional status filter. Accessible by ADMIN, SUPER_ADMIN, and STUDENT.")
     public ResponseEntity<ApiResponse<List<CourseResponseDto>>> getAllCourses(
+            @Parameter(description = "User ID from header", required = true) @RequestHeader("X-USER-ID") String userId,
+            @Parameter(description = "User role from header", required = true) @RequestHeader("X-USER-ROLE") String userRole,
             @Parameter(description = "Filter by status") @RequestParam(required = false) CourseStatus status
     ) {
-        log.info("GET /api/courses - status: {}", status);
+        log.info("GET /api/v1/courses - status: {} by user {}", status, userId);
         List<CourseResponseDto> courses = courseService.getAllCourses(status);
         ApiResponse<List<CourseResponseDto>> response = ApiResponse.success("Courses retrieved successfully", courses);
         return ResponseEntity.ok(response);
     }
     
     @GetMapping("/{id}")
-    @Operation(summary = "Get course by ID", description = "Public endpoint. Retrieves basic course information")
+    @RequireRole({"ADMIN", "SUPER_ADMIN", "STUDENT"})
+    @Operation(summary = "Get course by ID", description = "Retrieves basic course information. Accessible by ADMIN, SUPER_ADMIN, and STUDENT.")
     public ResponseEntity<ApiResponse<CourseResponseDto>> getCourseById(
+            @Parameter(description = "User ID from header", required = true) @RequestHeader("X-USER-ID") String userId,
+            @Parameter(description = "User role from header", required = true) @RequestHeader("X-USER-ROLE") String userRole,
             @Parameter(description = "Course ID", required = true) @PathVariable UUID id
     ) {
-        log.info("GET /api/courses/{}", id);
+        log.info("GET /api/v1/courses/{} by user {}", id, userId);
         CourseResponseDto course = courseService.getCourseById(id);
         ApiResponse<CourseResponseDto> response = ApiResponse.success("Course retrieved successfully", course);
         return ResponseEntity.ok(response);
     }
     
     @PostMapping
+    @RequireRole({"ADMIN", "SUPER_ADMIN"})
     @Operation(summary = "Create new course [ADMIN]", description = "Admin endpoint. Creates a new course in DRAFT status")
     public ResponseEntity<ApiResponse<CourseResponseDto>> createCourse(
             @Parameter(description = "User ID from header", required = true) @RequestHeader("X-USER-ID") String userId,
             @Parameter(description = "User role from header", required = true) @RequestHeader("X-USER-ROLE") String userRole,
             @Valid @RequestBody CourseCreateRequestDto request
     ) {
-        log.info("POST /api/courses - Creating course: {}", request.getName());
-        validateAdminRole(userRole);
+        log.info("POST /api/v1/courses - Creating course: {} by user {}", request.getName(), userId);
         CourseResponseDto course = courseService.createCourse(request);
         ApiResponse<CourseResponseDto> response = ApiResponse.success("Course created successfully", course);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
     
     @PutMapping("/{id}")
+    @RequireRole({"ADMIN", "SUPER_ADMIN"})
     @Operation(summary = "Update course [ADMIN]", description = "Admin endpoint. Updates course basic information")
     public ResponseEntity<ApiResponse<CourseResponseDto>> updateCourse(
             @Parameter(description = "User ID from header", required = true) @RequestHeader("X-USER-ID") String userId,
@@ -81,98 +78,98 @@ public class CourseController {
             @Parameter(description = "Course ID", required = true) @PathVariable UUID id,
             @Valid @RequestBody CourseCreateRequestDto request
     ) {
-        log.info("PUT /api/courses/{} - Updating course", id);
-        validateAdminRole(userRole);
+        log.info("PUT /api/v1/courses/{} - Updating course by user {}", id, userId);
         CourseResponseDto course = courseService.updateCourse(id, request);
         ApiResponse<CourseResponseDto> response = ApiResponse.success("Course updated successfully", course);
         return ResponseEntity.ok(response);
     }
     
     @DeleteMapping("/{id}")
+    @RequireRole({"ADMIN", "SUPER_ADMIN"})
     @Operation(summary = "Delete course [ADMIN]", description = "Admin endpoint. Permanently deletes a course and all its associations")
     public ResponseEntity<ApiResponse<Void>> deleteCourse(
             @Parameter(description = "User ID from header", required = true) @RequestHeader("X-USER-ID") String userId,
             @Parameter(description = "User role from header", required = true) @RequestHeader("X-USER-ROLE") String userRole,
             @Parameter(description = "Course ID", required = true) @PathVariable UUID id
     ) {
-        log.info("DELETE /api/courses/{}", id);
-        validateAdminRole(userRole);
+        log.info("DELETE /api/v1/courses/{} by user {}", id, userId);
         courseService.deleteCourse(id);
         ApiResponse<Void> response = ApiResponse.success("Course deleted successfully", null);
         return ResponseEntity.ok(response);
     }
     
     @GetMapping("/{id}/hierarchy")
+    @RequireRole({"ADMIN", "SUPER_ADMIN"})
     @Operation(summary = "Get course hierarchy [ADMIN]", description = "Admin endpoint. Retrieves complete course structure for review before publishing")
     public ResponseEntity<ApiResponse<CourseHierarchyResponseDto>> getCourseHierarchy(
             @Parameter(description = "User ID from header", required = true) @RequestHeader("X-USER-ID") String userId,
             @Parameter(description = "User role from header", required = true) @RequestHeader("X-USER-ROLE") String userRole,
             @Parameter(description = "Course ID", required = true) @PathVariable UUID id
     ) {
-        log.info("GET /api/courses/{}/hierarchy", id);
-        validateAdminRole(userRole);
+        log.info("GET /api/v1/courses/{}/hierarchy by user {}", id, userId);
         CourseHierarchyResponseDto hierarchy = courseService.getCourseHierarchy(id);
         ApiResponse<CourseHierarchyResponseDto> response = ApiResponse.success("Course hierarchy retrieved successfully", hierarchy);
         return ResponseEntity.ok(response);
     }
     
     @GetMapping("/{id}/completeness")
+    @RequireRole({"ADMIN", "SUPER_ADMIN"})
     @Operation(summary = "Check course completeness [ADMIN]", description = "Admin endpoint. Validates if course is complete and ready for publishing")
     public ResponseEntity<ApiResponse<Boolean>> checkCompleteness(
             @Parameter(description = "User ID from header", required = true) @RequestHeader("X-USER-ID") String userId,
             @Parameter(description = "User role from header", required = true) @RequestHeader("X-USER-ROLE") String userRole,
             @Parameter(description = "Course ID", required = true) @PathVariable UUID id
     ) {
-        log.info("GET /api/courses/{}/completeness", id);
-        validateAdminRole(userRole);
+        log.info("GET /api/v1/courses/{}/completeness by user {}", id, userId);
         boolean isComplete = courseService.isCourseComplete(id);
         ApiResponse<Boolean> response = ApiResponse.success("Course completeness checked successfully", isComplete);
         return ResponseEntity.ok(response);
     }
     
     @PostMapping("/{id}/publish")
+    @RequireRole({"ADMIN", "SUPER_ADMIN"})
     @Operation(summary = "Publish course [ADMIN]", description = "Admin endpoint. Publishes course (DRAFT → PUBLISHED)")
     public ResponseEntity<ApiResponse<CourseResponseDto>> publishCourse(
             @Parameter(description = "User ID from header", required = true) @RequestHeader("X-USER-ID") String userId,
             @Parameter(description = "User role from header", required = true) @RequestHeader("X-USER-ROLE") String userRole,
             @Parameter(description = "Course ID", required = true) @PathVariable UUID id
     ) {
-        log.info("POST /api/courses/{}/publish", id);
-        validateAdminRole(userRole);
+        log.info("POST /api/v1/courses/{}/publish by user {}", id, userId);
         CourseResponseDto course = courseService.publishCourse(id);
         ApiResponse<CourseResponseDto> response = ApiResponse.success("Course published successfully", course);
         return ResponseEntity.ok(response);
     }
     
     @PostMapping("/{id}/unpublish")
+    @RequireRole({"ADMIN", "SUPER_ADMIN"})
     @Operation(summary = "Unpublish course [ADMIN]", description = "Admin endpoint. Moves course back to DRAFT status")
     public ResponseEntity<ApiResponse<CourseResponseDto>> unpublishCourse(
             @Parameter(description = "User ID from header", required = true) @RequestHeader("X-USER-ID") String userId,
             @Parameter(description = "User role from header", required = true) @RequestHeader("X-USER-ROLE") String userRole,
             @Parameter(description = "Course ID", required = true) @PathVariable UUID id
     ) {
-        log.info("POST /api/courses/{}/unpublish", id);
-        validateAdminRole(userRole);
+        log.info("POST /api/v1/courses/{}/unpublish by user {}", id, userId);
         CourseResponseDto course = courseService.unpublishCourse(id);
         ApiResponse<CourseResponseDto> response = ApiResponse.success("Course unpublished successfully", course);
         return ResponseEntity.ok(response);
     }
     
     @PostMapping("/{id}/archive")
+    @RequireRole({"ADMIN", "SUPER_ADMIN"})
     @Operation(summary = "Archive course [ADMIN]", description = "Admin endpoint. Archives course (any status → ARCHIVED)")
     public ResponseEntity<ApiResponse<CourseResponseDto>> archiveCourse(
             @Parameter(description = "User ID from header", required = true) @RequestHeader("X-USER-ID") String userId,
             @Parameter(description = "User role from header", required = true) @RequestHeader("X-USER-ROLE") String userRole,
             @Parameter(description = "Course ID", required = true) @PathVariable UUID id
     ) {
-        log.info("POST /api/courses/{}/archive", id);
-        validateAdminRole(userRole);
+        log.info("POST /api/v1/courses/{}/archive by user {}", id, userId);
         CourseResponseDto course = courseService.archiveCourse(id);
         ApiResponse<CourseResponseDto> response = ApiResponse.success("Course archived successfully", course);
         return ResponseEntity.ok(response);
     }
     
     @PatchMapping("/{id}/status")
+    @RequireRole({"ADMIN", "SUPER_ADMIN"})
     @Operation(summary = "Update course status [ADMIN]", description = "Admin endpoint. Manually updates course status")
     public ResponseEntity<ApiResponse<CourseResponseDto>> updateStatus(
             @Parameter(description = "User ID from header", required = true) @RequestHeader("X-USER-ID") String userId,
@@ -180,8 +177,7 @@ public class CourseController {
             @Parameter(description = "Course ID", required = true) @PathVariable UUID id,
             @Parameter(description = "New status", required = true) @RequestParam CourseStatus status
     ) {
-        log.info("PATCH /api/courses/{}/status - status: {}", id, status);
-        validateAdminRole(userRole);
+        log.info("PATCH /api/v1/courses/{}/status - status: {} by user {}", id, status, userId);
         CourseResponseDto course = courseService.updateCourseStatus(id, status);
         ApiResponse<CourseResponseDto> response = ApiResponse.success("Course status updated successfully", course);
         return ResponseEntity.ok(response);

@@ -1,5 +1,6 @@
 package com.Lamicons.CurriculumService.Controller;
 
+import com.Lamicons.CurriculumService.Annotation.RequireRole;
 import com.Lamicons.CurriculumService.DTO.Module.ModuleContentRequestDto;
 import com.Lamicons.CurriculumService.DTO.Module.ModuleContentResponseDto;
 import com.Lamicons.CurriculumService.DTO.University.ApiResponse;
@@ -30,19 +31,9 @@ public class ModuleContentController {
 
     private final ModuleContentService moduleContentService;
 
-    private void validateAdminRole(String userRole) {
-        if (userRole == null || 
-            !(userRole.equalsIgnoreCase("ADMIN") || 
-              userRole.equalsIgnoreCase("ROLE_ADMIN") || 
-              userRole.equalsIgnoreCase("SUPER_ADMIN") || 
-              userRole.equalsIgnoreCase("ROLE_SUPER_ADMIN"))) {
-            log.warn("ModuleContentController: Unauthorized access attempt with role: {}", userRole);
-            throw new UnauthorizedException("Access denied. Admin role required.");
-        }
-    }
-
     @Operation(summary = "Create new module content [ADMIN]", description = "Creates a new content item for a specific module")
     @PostMapping("/module/{moduleId}")
+    @RequireRole({"ADMIN", "SUPER_ADMIN"})
     public ResponseEntity<ApiResponse<ModuleContentResponseDto>> createModuleContent(
             @Parameter(description = "User ID from header", required = true)
             @RequestHeader("X-USER-ID") String userId,
@@ -52,31 +43,36 @@ public class ModuleContentController {
             @PathVariable UUID moduleId,
             @Parameter(description = "Content data", required = true)
             @Valid @RequestBody ModuleContentRequestDto request) {
-        log.info("ModuleContentController : createModuleContent : Creating new content for module ID: {}", moduleId);
-        validateAdminRole(userRole);
+        log.info("ModuleContentController : createModuleContent : Creating new content for module ID: {} by user: {}", moduleId, userId);
         ModuleContentResponseDto content = moduleContentService.createModuleContent(moduleId, request);
 
                 
-        log.info("ModuleContentController : createModuleContent : Content created successfully with ID: {}", content.getId());
+        log.info("ModuleContentController : createModuleContent : Content created successfully with ID: {} by user: {}", content.getId(), userId);
         ApiResponse<ModuleContentResponseDto> response = ApiResponse.success("Module content created successfully", content);
         return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Get content by ID", description = "Retrieves a specific content item by its ID")
     @GetMapping("/{contentId}")
+    @RequireRole({"ADMIN", "SUPER_ADMIN", "STUDENT"})
     public ResponseEntity<ApiResponse<ModuleContentResponseDto>> getModuleContent(
+            @Parameter(description = "User ID from header", required = true)
+            @RequestHeader("X-USER-ID") String userId,
+            @Parameter(description = "User role from header", required = true)
+            @RequestHeader("X-USER-ROLE") String userRole,
             @Parameter(description = "ID of the content to retrieve", required = true)
             @PathVariable UUID contentId) {
-        log.info("ModuleContentController : getModuleContent : Retrieving content with ID: {}", contentId);
+        log.info("ModuleContentController : getModuleContent : Retrieving content with ID: {} by user: {}", contentId, userId);
         ModuleContentResponseDto content = moduleContentService.getModuleContent(contentId);
                 
-        log.info("ModuleContentController : getModuleContent : Content retrieved successfully");
+        log.info("ModuleContentController : getModuleContent : Content retrieved successfully for user: {}", userId);
         ApiResponse<ModuleContentResponseDto> response = ApiResponse.success("Module content retrieved successfully", content);
         return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Update content [ADMIN]", description = "Updates an existing content item")
     @PatchMapping("/{contentId}")
+    @RequireRole({"ADMIN", "SUPER_ADMIN"})
     public ResponseEntity<ApiResponse<ModuleContentResponseDto>> updateModuleContent(
             @Parameter(description = "User ID from header", required = true)
             @RequestHeader("X-USER-ID") String userId,
@@ -86,17 +82,17 @@ public class ModuleContentController {
             @PathVariable UUID contentId,
             @Parameter(description = "Updated content data", required = true)
             @Valid @RequestBody ModuleContentRequestDto request) {
-        log.info("ModuleContentController : updateModuleContent : Updating content with ID: {}", contentId);
-        validateAdminRole(userRole);
+        log.info("ModuleContentController : updateModuleContent : Updating content with ID: {} by user: {}", contentId, userId);
         ModuleContentResponseDto content = moduleContentService.updateModuleContent(contentId, request);
                 
-        log.info("ModuleContentController : updateModuleContent : Content updated successfully");
+        log.info("ModuleContentController : updateModuleContent : Content updated successfully by user: {}", userId);
         ApiResponse<ModuleContentResponseDto> response = ApiResponse.success("Module content updated successfully", content);
         return ResponseEntity.ok(response);
     }
     
     @Operation(summary = "Delete content [ADMIN]", description = "Deletes a content item")
     @DeleteMapping("/{contentId}")
+    @RequireRole({"ADMIN", "SUPER_ADMIN"})
     public ResponseEntity<ApiResponse<Void>> deleteModuleContent(
             @Parameter(description = "User ID from header", required = true)
             @RequestHeader("X-USER-ID") String userId,
@@ -104,22 +100,26 @@ public class ModuleContentController {
             @RequestHeader("X-USER-ROLE") String userRole,
             @Parameter(description = "ID of the content to delete", required = true)
             @PathVariable UUID contentId) {
-        log.info("ModuleContentController : deleteModuleContent : Deleting content with ID: {}", contentId);
-        validateAdminRole(userRole);
+        log.info("ModuleContentController : deleteModuleContent : Deleting content with ID: {} by user: {}", contentId, userId);
         moduleContentService.deleteModuleContent(contentId);
-        log.info("ModuleContentController : deleteModuleContent : Content deleted successfully");
+        log.info("ModuleContentController : deleteModuleContent : Content deleted successfully by user: {}", userId);
         ApiResponse<Void> response = ApiResponse.success("Module content deleted successfully", null);
         return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "List all content for a module", description = "Retrieves all content items for a specific module")
     @GetMapping("/module/{moduleId}")
+    @RequireRole({"ADMIN", "SUPER_ADMIN", "STUDENT"})
     public ResponseEntity<ApiResponse<List<ModuleContentResponseDto>>> listContentsByModule(
+            @Parameter(description = "User ID from header", required = true)
+            @RequestHeader("X-USER-ID") String userId,
+            @Parameter(description = "User role from header", required = true)
+            @RequestHeader("X-USER-ROLE") String userRole,
             @Parameter(description = "ID of the module to get content for", required = true)
             @PathVariable UUID moduleId) {
-        log.info("ModuleContentController : listContentsByModule : Retrieving content for module ID: {}", moduleId);
+        log.info("ModuleContentController : listContentsByModule : Retrieving content for module ID: {} by user: {}", moduleId, userId);
         List<ModuleContentResponseDto> contentList = moduleContentService.listContentsByModule(moduleId);
-        log.info("ModuleContentController : listContentsByModule : Found {} content items for module", contentList.size());
+        log.info("ModuleContentController : listContentsByModule : Found {} content items for module, user: {}", contentList.size(), userId);
         ApiResponse<List<ModuleContentResponseDto>> response = ApiResponse.success("Module content list retrieved successfully", contentList);
         return ResponseEntity.ok(response);
     }
