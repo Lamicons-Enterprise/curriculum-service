@@ -1,5 +1,6 @@
 package com.Lamicons.CurriculumService.Controller;
 
+import com.Lamicons.CurriculumService.Annotation.RequireRole;
 import com.Lamicons.CurriculumService.DTO.Assessment.*;
 import com.Lamicons.CurriculumService.DTO.University.ApiResponse;
 import com.Lamicons.CurriculumService.Exception.UnauthorizedException;
@@ -26,32 +27,27 @@ public class AssessmentController {
     
     private final AssessmentService assessmentService;
 
-    private void validateAdminRole(String userRole) {
-        if (userRole == null || 
-            !(userRole.equalsIgnoreCase("ADMIN") || 
-              userRole.equalsIgnoreCase("ROLE_ADMIN") || 
-              userRole.equalsIgnoreCase("SUPER_ADMIN") || 
-              userRole.equalsIgnoreCase("ROLE_SUPER_ADMIN"))) {
-            log.warn("AssessmentController: Unauthorized access attempt with role: {}", userRole);
-            throw new UnauthorizedException("Access denied. Admin role required.");
-        }
-    }
-    
     @GetMapping("/{id}")
+    @RequireRole({"ADMIN", "SUPER_ADMIN", "STUDENT"})
     @Operation(
         summary = "Get assessment by ID",
-        description = "Public endpoint. Retrieves assessment details with all linked questions"
+        description = "Retrieves assessment details with all linked questions. Restricted to ADMIN, SUPER_ADMIN, or STUDENT."
     )
     public ResponseEntity<ApiResponse<AssessmentResponseDto>> getAssessmentById(
-            @Parameter(description = "Assessment ID", required = true) @PathVariable UUID id
+            @Parameter(description = "Assessment ID", required = true) @PathVariable UUID id,
+            @Parameter(description = "User ID from header", required = true)
+            @RequestHeader("X-USER-ID") String userId,
+            @Parameter(description = "User role from header", required = true)
+            @RequestHeader("X-USER-ROLE") String userRole
     ) {
-        log.info("GET /api/assessments/{}", id);
-        AssessmentResponseDto assessment = assessmentService.getAssessmentById(id);
+        log.info("GET /api/v1/assessments/{} by user {} with role {}", id, userId, userRole);
+        AssessmentResponseDto assessment = assessmentService.getAssessmentById(id, userId, userRole);
         ApiResponse<AssessmentResponseDto> response = ApiResponse.success("Assessment retrieved successfully", assessment);
         return ResponseEntity.ok(response);
     }
     
     @PostMapping
+    @RequireRole({"ADMIN", "SUPER_ADMIN"})
     @Operation(
         summary = "Create new assessment [ADMIN]",
         description = "Admin endpoint. Creates a standalone assessment (can be reusable or module-specific)"
@@ -63,14 +59,14 @@ public class AssessmentController {
             @RequestHeader("X-USER-ROLE") String userRole,
             @Valid @RequestBody AssessmentAttachmentRequestDto.NewAssessmentDto request
     ) {
-        log.info("POST /api/assessments - Creating assessment: {}", request.getTitle());
-        validateAdminRole(userRole);
+        log.info("POST /api/v1/assessments - Creating assessment: {} by user {}", request.getTitle(), userId);
         AssessmentResponseDto assessment = assessmentService.createStandaloneAssessment(request);
         ApiResponse<AssessmentResponseDto> response = ApiResponse.success("Assessment created successfully", assessment);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
     
     @PutMapping("/{id}")
+    @RequireRole({"ADMIN", "SUPER_ADMIN"})
     @Operation(
         summary = "Update assessment [ADMIN]",
         description = "Admin endpoint. Updates assessment details"
@@ -83,14 +79,14 @@ public class AssessmentController {
             @Parameter(description = "Assessment ID", required = true) @PathVariable UUID id,
             @Valid @RequestBody AssessmentAttachmentRequestDto.NewAssessmentDto request
     ) {
-        log.info("PUT /api/assessments/{} - Updating assessment", id);
-        validateAdminRole(userRole);
+        log.info("PUT /api/v1/assessments/{} - Updating assessment by user {}", id, userId);
         AssessmentResponseDto assessment = assessmentService.updateAssessment(id, request);
         ApiResponse<AssessmentResponseDto> response = ApiResponse.success("Assessment updated successfully", assessment);
         return ResponseEntity.ok(response);
     }
     
     @DeleteMapping("/{id}")
+    @RequireRole({"ADMIN", "SUPER_ADMIN"})
     @Operation(
         summary = "Delete assessment [ADMIN]",
         description = "Admin endpoint. Soft deletes an assessment (only if not used in any modules)"
@@ -102,14 +98,14 @@ public class AssessmentController {
             @RequestHeader("X-USER-ROLE") String userRole,
             @Parameter(description = "Assessment ID", required = true) @PathVariable UUID id
     ) {
-        log.info("DELETE /api/assessments/{}", id);
-        validateAdminRole(userRole);
+        log.info("DELETE /api/v1/assessments/{} by user {}", id, userId);
         assessmentService.deleteAssessment(id);
         ApiResponse<Void> response = ApiResponse.success("Assessment deleted successfully", null);
         return ResponseEntity.ok(response);
     }
     
     @PostMapping("/attach-to-module")
+    @RequireRole({"ADMIN", "SUPER_ADMIN"})
     @Operation(
         summary = "Attach assessments to module [ADMIN]",
         description = "Admin endpoint. Attaches existing or new assessments to a module. " +
@@ -122,28 +118,33 @@ public class AssessmentController {
             @RequestHeader("X-USER-ROLE") String userRole,
             @Valid @RequestBody AssessmentAttachmentRequestDto request
     ) {
-        log.info("POST /api/assessments/attach-to-module - moduleId: {}", request.getModuleId());
-        validateAdminRole(userRole);
+        log.info("POST /api/v1/assessments/attach-to-module - moduleId: {} by user {}", request.getModuleId(), userId);
         assessmentService.attachAssessmentsToModule(request);
         ApiResponse<Void> response = ApiResponse.success("Assessments attached to module successfully", null);
         return ResponseEntity.ok(response);
     }
     
     @GetMapping("/by-module/{moduleId}")
+    @RequireRole({"ADMIN", "SUPER_ADMIN", "STUDENT"})
     @Operation(
         summary = "Get assessments by module",
-        description = "Public endpoint. Retrieves all assessments attached to a specific module"
+        description = "Retrieves all assessments attached to a specific module. Restricted to ADMIN, SUPER_ADMIN, or STUDENT."
     )
     public ResponseEntity<ApiResponse<List<AssessmentResponseDto>>> getAssessmentsByModule(
-            @Parameter(description = "Module ID", required = true) @PathVariable UUID moduleId
+            @Parameter(description = "Module ID", required = true) @PathVariable UUID moduleId,
+            @Parameter(description = "User ID from header", required = true)
+            @RequestHeader("X-USER-ID") String userId,
+            @Parameter(description = "User role from header", required = true)
+            @RequestHeader("X-USER-ROLE") String userRole
     ) {
-        log.info("GET /api/assessments/by-module/{}", moduleId);
-        List<AssessmentResponseDto> assessments = assessmentService.getAssessmentsByModuleId(moduleId);
+        log.info("GET /api/v1/assessments/by-module/{} by user {} with role {}", moduleId, userId, userRole);
+        List<AssessmentResponseDto> assessments = assessmentService.getAssessmentsByModuleId(moduleId, userId, userRole);
         ApiResponse<List<AssessmentResponseDto>> response = ApiResponse.success("Assessments retrieved successfully", assessments);
         return ResponseEntity.ok(response);
     }
     
     @DeleteMapping("/modules/{moduleId}/assessments/{assessmentId}")
+    @RequireRole({"ADMIN", "SUPER_ADMIN"})
     @Operation(
         summary = "Remove assessment from module [ADMIN]",
         description = "Admin endpoint. Removes assessment from module (soft delete from junction table)"
@@ -156,8 +157,7 @@ public class AssessmentController {
             @Parameter(description = "Module ID", required = true) @PathVariable UUID moduleId,
             @Parameter(description = "Assessment ID", required = true) @PathVariable UUID assessmentId
     ) {
-        log.info("DELETE /api/assessments/modules/{}/assessments/{}", moduleId, assessmentId);
-        validateAdminRole(userRole);
+        log.info("DELETE /api/v1/assessments/modules/{}/assessments/{} by user {}", moduleId, assessmentId, userId);
         assessmentService.removeAssessmentFromModule(moduleId, assessmentId);
         ApiResponse<Void> response = ApiResponse.success("Assessment removed from module successfully", null);
         return ResponseEntity.ok(response);
