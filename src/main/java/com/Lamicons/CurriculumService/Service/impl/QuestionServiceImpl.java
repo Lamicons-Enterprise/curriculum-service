@@ -4,7 +4,9 @@ import com.Lamicons.CurriculumService.DTO.Question.*;
 import com.Lamicons.CurriculumService.Entity.Assessment;
 import com.Lamicons.CurriculumService.Entity.JunctionTable.AssessmentQuestion;
 import com.Lamicons.CurriculumService.Entity.Question.CodingQuestion;
+import com.Lamicons.CurriculumService.Entity.Question.CodingTestCase;
 import com.Lamicons.CurriculumService.Entity.Question.McqQuestion;
+import com.Lamicons.CurriculumService.Entity.Question.ProblemLanguageConfig;
 import com.Lamicons.CurriculumService.Entity.Question.Question;
 import com.Lamicons.CurriculumService.Repository.AssessmentQuestionRepository;
 import com.Lamicons.CurriculumService.Repository.AssessmentRepository;
@@ -76,18 +78,41 @@ public class QuestionServiceImpl implements QuestionService {
                         .topic(request.getTopic())
                         .score(request.getScore())
                         .negativeScore(request.getNegativeScore())
+                        .timeLimit(request.getTimeLimit() != null ? request.getTimeLimit() : 2000)
+                        .memoryLimit(request.getMemoryLimit() != null ? request.getMemoryLimit() : 256)
                         .createdAt(Instant.now())
                         .updatedAt(Instant.now())
                         .build();
-                
-                // For now, store sample input/output as testcases
-                // Format: "INPUT: <input> | OUTPUT: <output>"
-                if (request.getSampleInput() != null || request.getSampleOutput() != null) {
-                    String testCase = "INPUT: " + (request.getSampleInput() != null ? request.getSampleInput() : "N/A") +
-                                    " | OUTPUT: " + (request.getSampleOutput() != null ? request.getSampleOutput() : "N/A");
-                    coding.setTestcases(Arrays.asList(testCase));
+
+                question = questionRepository.save(coding);
+
+                // Save test cases
+                if (request.getTestCases() != null) {
+                    for (CodingTestCaseDto tcDto : request.getTestCases()) {
+                        CodingTestCase tc = CodingTestCase.builder()
+                                .codingQuestion(coding)
+                                .input(tcDto.getInput())
+                                .output(tcDto.getOutput())
+                                .visibility(tcDto.getVisibility() != null ? tcDto.getVisibility() : TestCaseVisibility.HIDDEN)
+                                .orderNumber(tcDto.getOrderNumber() != null ? tcDto.getOrderNumber() : 0)
+                                .build();
+                        coding.getTestCases().add(tc);
+                    }
                 }
-                
+
+                // Save language configs
+                if (request.getLanguageConfigs() != null) {
+                    for (LanguageConfigDto lcDto : request.getLanguageConfigs()) {
+                        ProblemLanguageConfig plc = ProblemLanguageConfig.builder()
+                                .codingQuestion(coding)
+                                .language(lcDto.getLanguage())
+                                .boilerplate(lcDto.getBoilerplate())
+                                .hiddenCode(lcDto.getHiddenCode())
+                                .build();
+                        coding.getLanguageConfigs().add(plc);
+                    }
+                }
+
                 question = questionRepository.save(coding);
                 break;
                 
@@ -131,11 +156,34 @@ public class QuestionServiceImpl implements QuestionService {
             }
         } else if (question instanceof CodingQuestion && request.getType() == QuestionType.CODING) {
             CodingQuestion coding = (CodingQuestion) question;
-            // Store sample input/output as testcases
-            if (request.getSampleInput() != null || request.getSampleOutput() != null) {
-                String testCase = "INPUT: " + (request.getSampleInput() != null ? request.getSampleInput() : "N/A") +
-                                " | OUTPUT: " + (request.getSampleOutput() != null ? request.getSampleOutput() : "N/A");
-                coding.setTestcases(Arrays.asList(testCase));
+            coding.setTimeLimit(request.getTimeLimit() != null ? request.getTimeLimit() : coding.getTimeLimit());
+            coding.setMemoryLimit(request.getMemoryLimit() != null ? request.getMemoryLimit() : coding.getMemoryLimit());
+
+            if (request.getTestCases() != null) {
+                coding.getTestCases().clear();
+                for (CodingTestCaseDto tcDto : request.getTestCases()) {
+                    CodingTestCase tc = CodingTestCase.builder()
+                            .codingQuestion(coding)
+                            .input(tcDto.getInput())
+                            .output(tcDto.getOutput())
+                            .visibility(tcDto.getVisibility() != null ? tcDto.getVisibility() : TestCaseVisibility.HIDDEN)
+                            .orderNumber(tcDto.getOrderNumber() != null ? tcDto.getOrderNumber() : 0)
+                            .build();
+                    coding.getTestCases().add(tc);
+                }
+            }
+
+            if (request.getLanguageConfigs() != null) {
+                coding.getLanguageConfigs().clear();
+                for (LanguageConfigDto lcDto : request.getLanguageConfigs()) {
+                    ProblemLanguageConfig plc = ProblemLanguageConfig.builder()
+                            .codingQuestion(coding)
+                            .language(lcDto.getLanguage())
+                            .boilerplate(lcDto.getBoilerplate())
+                            .hiddenCode(lcDto.getHiddenCode())
+                            .build();
+                    coding.getLanguageConfigs().add(plc);
+                }
             }
         }
         
@@ -436,17 +484,25 @@ public class QuestionServiceImpl implements QuestionService {
                         .topic(dto.getTopic())
                         .score(dto.getScore())
                         .negativeScore(dto.getNegativeScore())
+                        .timeLimit(dto.getTimeLimit() != null ? dto.getTimeLimit() : 2000)
+                        .memoryLimit(dto.getMemoryLimit() != null ? dto.getMemoryLimit() : 256)
                         .createdAt(Instant.now())
                         .updatedAt(Instant.now())
                         .build();
-                
-                // Store sample input/output as testcases
-                if (dto.getSampleInput() != null || dto.getSampleOutput() != null) {
-                    String testCase = "INPUT: " + (dto.getSampleInput() != null ? dto.getSampleInput() : "N/A") +
-                                    " | OUTPUT: " + (dto.getSampleOutput() != null ? dto.getSampleOutput() : "N/A");
-                    codingQuestion.setTestcases(Arrays.asList(testCase));
+
+                if (dto.getTestCases() != null) {
+                    for (CodingTestCaseDto tcDto : dto.getTestCases()) {
+                        CodingTestCase tc = CodingTestCase.builder()
+                                .codingQuestion(codingQuestion)
+                                .input(tcDto.getInput())
+                                .output(tcDto.getOutput())
+                                .visibility(tcDto.getVisibility() != null ? tcDto.getVisibility() : TestCaseVisibility.HIDDEN)
+                                .orderNumber(tcDto.getOrderNumber() != null ? tcDto.getOrderNumber() : 0)
+                                .build();
+                        codingQuestion.getTestCases().add(tc);
+                    }
                 }
-                
+
                 return codingQuestion;
                 
             default:

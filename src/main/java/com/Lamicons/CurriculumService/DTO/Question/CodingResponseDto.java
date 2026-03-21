@@ -18,7 +18,8 @@ public class CodingResponseDto {
     private String title;
     private String description;
     private String topic;
-    private List<String> testcases;
+    private Integer timeLimit;
+    private Integer memoryLimit;
     private Integer score;
     private Integer negativeScore;
     private QuestionType type;

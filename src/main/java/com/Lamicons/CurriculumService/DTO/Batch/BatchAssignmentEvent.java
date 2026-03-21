@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
- * Event published to RabbitMQ when a batch-instructor assignment changes.
+ * Event published to Kafka when a batch-instructor assignment changes.
  *
  * eventType values:
  *   ASSIGNED       — new instructor set on a batch (create or update)

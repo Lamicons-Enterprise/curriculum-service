@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/assessments")
+@RequestMapping("/api/v1/assessments")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Assessment Management", description = "Unified Assessment API - CRUD operations and module linking")
@@ -27,7 +27,11 @@ public class AssessmentController {
     private final AssessmentService assessmentService;
 
     private void validateAdminRole(String userRole) {
-        if (userRole == null || !userRole.equalsIgnoreCase("ADMIN")) {
+        if (userRole == null || 
+            !(userRole.equalsIgnoreCase("ADMIN") || 
+              userRole.equalsIgnoreCase("ROLE_ADMIN") || 
+              userRole.equalsIgnoreCase("SUPER_ADMIN") || 
+              userRole.equalsIgnoreCase("ROLE_SUPER_ADMIN"))) {
             log.warn("AssessmentController: Unauthorized access attempt with role: {}", userRole);
             throw new UnauthorizedException("Access denied. Admin role required.");
         }

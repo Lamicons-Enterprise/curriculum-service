@@ -126,9 +126,12 @@ public class CsvQuestionParser {
             
             // CODING specific fields
             if (type == QuestionType.CODING) {
-                if (columns.length > 11) builder.sampleInput(columns[11].trim());
-                if (columns.length > 12) builder.sampleOutput(columns[12].trim());
-                if (columns.length > 13) builder.constraints(columns[13].trim());
+                if (columns.length > 11 && !columns[11].trim().isEmpty()) {
+                    try { builder.timeLimit(Integer.parseInt(columns[11].trim())); } catch (NumberFormatException ignored) {}
+                }
+                if (columns.length > 12 && !columns[12].trim().isEmpty()) {
+                    try { builder.memoryLimit(Integer.parseInt(columns[12].trim())); } catch (NumberFormatException ignored) {}
+                }
             }
             
             return builder.build();

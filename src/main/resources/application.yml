@@ -1,11 +1,10 @@
 spring:
   application:
-    name: Curriculum-Service
-
+    name: CURRICULUM-SERVICE
   datasource:
-    url: jdbc:postgresql://localhost:5432/lamicons
-    username: db_username
-    password: db_password
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/lamicons}
+    username: ${SPRING_DATASOURCE_USERNAME:db_username}
+    password: ${SPRING_DATASOURCE_PASSWORD:db_password}
     driver-class-name: org.postgresql.Driver
 
   sql:
@@ -17,32 +16,29 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
-    open-in-view: false
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
         jdbc:
           lob:
             non_contextual_creation: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
 
-  rabbitmq:
-    host: ${RABBITMQ_HOST:localhost}
-    port: ${RABBITMQ_PORT:5672}
-    username: ${RABBITMQ_USERNAME:guest}
-    password: ${RABBITMQ_PASSWORD:guest}
-    virtual-host: ${RABBITMQ_VHOST:/}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      properties:
+        enable.idempotence: true
 
-  cloud:
-    compatibility-verifier:
-      enabled: false
-
-# RabbitMQ custom properties
-rabbitmq:
-  exchange:
-    name: lamicons.notification.exchange
-  routing-key:
-    batch-assignment: curriculum.batch.assignment
+# Kafka topic names
+kafka:
+  topic:
+    batch-assignment: batch-assignment-events
 
 server:
   port: 8082
@@ -57,26 +53,26 @@ management:
       exposure:
         include: health,info,prometheus
 
-# Swagger
+# SpringDoc OpenAPI Configuration
 springdoc:
   api-docs:
     enabled: true
     path: /v3/api-docs
   swagger-ui:
-    enabled: true
     path: /swagger-ui.html
     disable-swagger-default-url: true
     display-request-duration: true
+  pathsToMatch: /api/**
 
-# AWS S3 Configuration (Dummy values for local testing)
+# AWS S3 Configuration
 aws:
   s3:
-    enabled: true
-    access-key: dummy
-    secret-key: dummy
-    region: ap-south-1
-    bucket-name: dummy-bucket
-    prefix: dummy
+    access-key: ${AWS_ACCESS_KEY:jbveubuebebuefbvouefv}
+    secret-key: ${AWS_SECRET_KEY:jhbbibhhbihbveipf}
+    region: ${AWS_REGION:us-east-1}
+    bucket-name: ${AWS_S3_BUCKET_NAME:lamicons}
+    prefix: ${AWS_S3_PREFIX:curriculum-service/}
+    enabled: true 
 
 # File Upload Configuration
 file:
@@ -93,5 +89,15 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
     service-url:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
 
+logging:
+  level:
+    root: WARN
+    org.springframework: WARN
+    org.hibernate: WARN
+    org.hibernate.SQL: OFF
+    com.netflix.discovery: WARN
+    org.springframework.cloud: WARN
+    org.springframework.data.redis: ERROR
+    com.Lamicons: INFO
