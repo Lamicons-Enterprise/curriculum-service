@@ -189,4 +189,23 @@ public class BatchController {
         log.info("BatchController : deleteBatch : Batch deleted with ID: {} by user {}", id, userId);
         return ResponseEntity.ok(response);
     }
+
+    @Operation(summary = "Check instructor assignment", description = "Verifies if an instructor is assigned to a specific batch")
+    @GetMapping("/{batchId}/instructors/{userId}/assigned")
+    public ResponseEntity<ApiResponse<Boolean>> isInstructorAssignedToBatch(
+            @Parameter(description = "ID of the batch", required = true)
+            @PathVariable UUID batchId,
+            @Parameter(description = "User ID of the instructor", required = true)
+            @PathVariable UUID userId) {
+        
+        log.info("BatchController : isInstructorAssignedToBatch : Checking assignment for batch: {} and userId: {}", batchId, userId);
+        
+        boolean isAssigned = batchService.isInstructorAssignedToBatch(batchId, userId);
+        ApiResponse<Boolean> response = ApiResponse.success(
+            "Instructor assignment checked successfully", 
+            isAssigned
+        );
+        
+        return ResponseEntity.ok(response);
+    }
 }

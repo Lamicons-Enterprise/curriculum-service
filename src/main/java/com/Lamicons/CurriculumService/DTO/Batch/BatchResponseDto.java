@@ -35,6 +35,9 @@ public class BatchResponseDto {
     private UUID universityId;
     private String universityName;
     
+    // Instructor's user ID
+    private UUID instructorUserId;
+    
     // Audit fields
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
