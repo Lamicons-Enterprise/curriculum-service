@@ -41,15 +41,19 @@ public abstract class Question {
     private String topic;
 
     @Min(value = 0, message = "Score must be a non-negative number")
-    @Max(value = 100, message = "Score cannot exceed 100 points")
+    @Max(value = 1000, message = "Score cannot exceed 1000 points")
     private Integer score;
-    
+
     @Max(value = 0, message = "Negative score must be less than or equal to 0")
     private Integer negativeScore;
 
+    @Size(max = 500, message = "Tags cannot exceed 500 characters")
+    @Column(length = 500)
+    private String tags;
+
     @Column(name = "created_at")
     private Instant createdAt = Instant.now();
-    
+
     @Column(name = "updated_at")
     private Instant updatedAt = Instant.now();
 }

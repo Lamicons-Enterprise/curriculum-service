@@ -279,6 +279,7 @@ public class AssessmentServiceImpl implements AssessmentService {
                             .title(aq.getQuestion().getTitle())
                             .description(aq.getQuestion().getDescription())
                             .topic(aq.getQuestion().getTopic())
+                            .tags(aq.getQuestion().getTags())
                             .score(aq.getQuestion().getScore())
                             .negativeScore(aq.getQuestion().getNegativeScore())
                             .orderNumber(aq.getOrderNumber());
