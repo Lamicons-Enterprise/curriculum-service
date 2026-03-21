@@ -1,4 +1,6 @@
 spring:
+  profiles:
+    active: prod
   datasource:
     url: jdbc:postgresql://localhost:5432/lamicons
     username: postgres
@@ -51,14 +53,14 @@ springdoc:
     disable-swagger-default-url: true
     display-request-duration: true
 
-# AWS S3 Configuration (Dummy values for local testing)
+# AWS S3 Configuration
 aws:
   s3:
     enabled: true
-    access-key: dummy
-    secret-key: dummy
+    access-key: 
+    secret-key: 
     region: ap-south-1
-    bucket-name: dummy-bucket
+    bucket-name: 
     prefix: dummy
 
 # File Upload Configuration
