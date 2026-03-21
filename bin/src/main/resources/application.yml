@@ -1,10 +1,8 @@
 spring:
-  application:
-    name: CURRICULUM-SERVICE
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/lamicons}
-    username: ${SPRING_DATASOURCE_USERNAME:postgres}
-    password: ${SPRING_DATASOURCE_PASSWORD:Atul2192}
+    url: jdbc:postgresql://localhost:5432/lamicons
+    username: postgres
+    password: 123
     driver-class-name: org.postgresql.Driver
 
   sql:
@@ -16,7 +14,8 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: false
+    show-sql: true
+    open-in-view: false
     properties:
       hibernate:
         format_sql: true
@@ -52,14 +51,14 @@ springdoc:
     disable-swagger-default-url: true
     display-request-duration: true
 
-# AWS S3 Configuration
+# AWS S3 Configuration (Dummy values for local testing)
 aws:
   s3:
     enabled: true
-    access-key: 
-    secret-key: 
+    access-key: dummy
+    secret-key: dummy
     region: ap-south-1
-    bucket-name: 
+    bucket-name: dummy-bucket
     prefix: dummy
 
 # File Upload Configuration
@@ -77,15 +76,4 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
     service-url:
-      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
-
-logging:
-  level:
-    root: WARN
-    org.springframework: WARN
-    org.hibernate: WARN
-    org.hibernate.SQL: OFF
-    com.netflix.discovery: WARN
-    org.springframework.cloud: WARN
-    org.springframework.data.redis: ERROR
-    com.Lamicons: INFO
+      defaultZone: http://localhost:8761/eureka
