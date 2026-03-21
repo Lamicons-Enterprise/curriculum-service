@@ -37,7 +37,9 @@ public class QuestionCreateRequestDto {
     private Integer score;
     
     private Integer negativeScore;
-    
+
+    private String tags;
+
     // For MCQ questions
     private List<McqOptionDto> options;
     
