@@ -3,8 +3,8 @@ spring:
     name: CURRICULUM-SERVICE
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/lamicons}
-    username: ${SPRING_DATASOURCE_USERNAME:postgres}
-    password: ${SPRING_DATASOURCE_PASSWORD:Atul2192}
+    username: ${SPRING_DATASOURCE_USERNAME:db_username}
+    password: ${SPRING_DATASOURCE_PASSWORD:db_password}
     driver-class-name: org.postgresql.Driver
 
   sql:
