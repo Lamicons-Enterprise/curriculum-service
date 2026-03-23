@@ -141,6 +141,7 @@ public class QuestionServiceImpl implements QuestionService {
         question.setTitle(request.getTitle());
         question.setDescription(request.getDescription());
         question.setTopic(request.getTopic());
+        question.setTags(request.getTags());
         question.setScore(request.getScore());
         question.setNegativeScore(request.getNegativeScore());
         question.setUpdatedAt(Instant.now());
@@ -511,14 +512,51 @@ public class QuestionServiceImpl implements QuestionService {
     }
     
     private QuestionSummaryDto mapToSummaryDto(Question question, Integer orderNumber) {
-        return QuestionSummaryDto.builder()
+        QuestionSummaryDto.QuestionSummaryDtoBuilder builder = QuestionSummaryDto.builder()
                 .questionId(question.getId())
                 .type(question.getType())
                 .title(question.getTitle())
+                .description(question.getDescription())
                 .topic(question.getTopic())
                 .score(question.getScore())
                 .negativeScore(question.getNegativeScore())
                 .orderNumber(orderNumber)
-                .build();
+                .tags(question.getTags());
+
+        if (question instanceof com.Lamicons.CurriculumService.Entity.Question.McqQuestion) {
+            com.Lamicons.CurriculumService.Entity.Question.McqQuestion mcq =
+                (com.Lamicons.CurriculumService.Entity.Question.McqQuestion) question;
+            builder.options(mcq.getOptions())
+                   .correctOption(mcq.getCorrectOption());
+        }
+
+        if (question instanceof com.Lamicons.CurriculumService.Entity.Question.CodingQuestion) {
+            com.Lamicons.CurriculumService.Entity.Question.CodingQuestion coding =
+                (com.Lamicons.CurriculumService.Entity.Question.CodingQuestion) question;
+            builder.timeLimit(coding.getTimeLimit())
+                   .memoryLimit(coding.getMemoryLimit());
+            if (coding.getTestCases() != null) {
+                builder.testCases(coding.getTestCases().stream()
+                        .map(tc -> com.Lamicons.CurriculumService.DTO.Question.CodingTestCaseDto.builder()
+                                .id(tc.getId())
+                                .input(tc.getInput())
+                                .output(tc.getOutput())
+                                .visibility(tc.getVisibility())
+                                .orderNumber(tc.getOrderNumber())
+                                .build())
+                        .collect(java.util.stream.Collectors.toList()));
+            }
+            if (coding.getLanguageConfigs() != null) {
+                builder.languageConfigs(coding.getLanguageConfigs().stream()
+                        .map(lc -> com.Lamicons.CurriculumService.DTO.Question.LanguageConfigDto.builder()
+                                .language(lc.getLanguage())
+                                .boilerplate(lc.getBoilerplate())
+                                .hiddenCode(lc.getHiddenCode())
+                                .build())
+                        .collect(java.util.stream.Collectors.toList()));
+            }
+        }
+
+        return builder.build();
     }
 }

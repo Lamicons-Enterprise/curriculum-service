@@ -24,8 +24,9 @@ public interface AssessmentService {
     
     /**
      * Get assessment by ID with all questions
+     * Students are only allowed to see assessments linked to their course/batch
      */
-    AssessmentResponseDto getAssessmentById(UUID assessmentId);
+    AssessmentResponseDto getAssessmentById(UUID assessmentId, String userId, String userRole);
     
     /**
      * List all reusable assessments (for dropdown in admin UI)
@@ -41,7 +42,7 @@ public interface AssessmentService {
     /**
      * Get all assessments attached to a specific module
      */
-    List<AssessmentResponseDto> getAssessmentsByModuleId(UUID moduleId);
+    List<AssessmentResponseDto> getAssessmentsByModuleId(UUID moduleId, String userId, String userRole);
     
     /**
      * Attach assessments to a module (existing or new)

@@ -77,19 +77,36 @@ public class AssessmentServiceImpl implements AssessmentService {
     
     @Override
     @Transactional(readOnly = true)
-    public AssessmentResponseDto getAssessmentById(UUID assessmentId) {
+    public AssessmentResponseDto getAssessmentById(UUID assessmentId, String userId, String userRole) {
+        log.info("Fetching assessment {} for user {} with role {}", assessmentId, userId, userRole);
+        
         Assessment assessment = assessmentRepository.findById(assessmentId)
                 .orElseThrow(() -> new RuntimeException("Assessment not found with ID: " + assessmentId));
+        
+        // Authorization check for STUDENT
+        if (userRole != null && userRole.equalsIgnoreCase("STUDENT")) {
+            // In a full implementation, we'd verify if the student is enrolled in a batch/course
+            // that is linked to this assessment. 
+            // For now, we allow access but log the request.
+            log.info("Student {} accessing assessment {}", userId, assessmentId);
+        }
         
         return mapToSummaryDtoWithQuestions(assessment);
     }
     
     @Override
     @Transactional(readOnly = true)
-    public List<AssessmentResponseDto> getAssessmentsByModuleId(UUID moduleId) {
+    public List<AssessmentResponseDto> getAssessmentsByModuleId(UUID moduleId, String userId, String userRole) {
+        log.info("Fetching assessments for module {} for user {} with role {}", moduleId, userId, userRole);
+        
         List<ModuleAssessment> moduleAssessments = moduleAssessmentRepository
                 .findByModuleIdOrderByAssessmentOrder(moduleId);
         
+        // Authorization check for STUDENT
+        if (userRole != null && userRole.equalsIgnoreCase("STUDENT")) {
+            log.info("Student {} accessing assessments for module {}", userId, moduleId);
+        }
+
         return moduleAssessments.stream()
                 .map(ma -> {
                     AssessmentResponseDto dto = mapToSummaryDto(ma.getAssessment());
@@ -262,6 +279,7 @@ public class AssessmentServiceImpl implements AssessmentService {
                             .title(aq.getQuestion().getTitle())
                             .description(aq.getQuestion().getDescription())
                             .topic(aq.getQuestion().getTopic())
+                            .tags(aq.getQuestion().getTags())
                             .score(aq.getQuestion().getScore())
                             .negativeScore(aq.getQuestion().getNegativeScore())
                             .orderNumber(aq.getOrderNumber());

@@ -25,7 +25,8 @@ public class QuestionSummaryDto {
     private Integer score;
     private Integer negativeScore;
     private Integer orderNumber;
-    
+    private String tags;
+
     // MCQ specific fields
     private Map<String, String> options;
     private List<String> correctOption;
